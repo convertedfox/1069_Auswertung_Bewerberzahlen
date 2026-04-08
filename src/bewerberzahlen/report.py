@@ -23,6 +23,11 @@ class ProcessingResult:
     warnings: list[Issue]
     errors: list[Issue]
     duplicates: Any  # pandas.DataFrame
+    n_input: int = 0
+    n_kept: int = 0
+    n_duplicates: int = 0
+    n_missing_program: int = 0
+    n_unknown_program: int = 0
 
     @property
     def is_successful(self) -> bool:

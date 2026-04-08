@@ -69,6 +69,11 @@ def test_dubletten_entfernt_and_aufbewahrt_erste() -> None:
     assert len(result.cleaned) == 1
     assert len(result.duplicates) == 1
     assert not result.errors
+    assert result.n_input == 2
+    assert result.n_kept == 1
+    assert result.n_duplicates == 1
+    assert result.n_missing_program == 0
+    assert result.n_unknown_program == 0
 
 
 def test_status_wird_abgeleitet() -> None:
@@ -109,6 +114,7 @@ def test_mehrfach_status_fuehrt_zu_fehler() -> None:
     assert result.cleaned is not None
     assert not result.errors
     assert result.cleaned[STATUS_COLUMN].iloc[0] == "Absage"
+    assert result.n_unknown_program == 0
 
 
 def test_unknown_program_ergibt_fehler() -> None:
@@ -117,6 +123,7 @@ def test_unknown_program_ergibt_fehler() -> None:
 
     assert result.cleaned is None
     assert any("Unbekannt" in issue.message for issue in result.errors)
+    assert result.n_unknown_program == 1
 
 
 def test_leerer_studiengang_wird_ignoriert_aber_gemeldet() -> None:
@@ -134,6 +141,8 @@ def test_leerer_studiengang_wird_ignoriert_aber_gemeldet() -> None:
     assert len(result.cleaned) == 1
     assert result.cleaned[PROGRAM_COLUMN].iloc[0] == "Informatik"
     assert any("Studiengang fehlt" in issue.message for issue in result.warnings)
+    assert result.n_missing_program == 1
+    assert result.n_kept == 1
 
 
 def test_manuelle_zuordnung_erlaubt_unbekannten_studiengang() -> None:

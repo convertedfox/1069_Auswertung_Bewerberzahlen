@@ -32,6 +32,7 @@ def process_dataframe(
 ) -> ProcessingResult:
     cfg = config or PipelineConfig()
     working = df.copy()
+    n_input = len(working)
     working["__row_number"] = range(2, len(working) + 2)
     warnings: list[Issue] = []
     errors: list[Issue] = []
@@ -93,8 +94,19 @@ def process_dataframe(
 
     duplicates = _sanitize_output(duplicates)
 
+    n_unknown_program = sum(len(rows) for rows in mapping_errors.values())
+    n_kept = len(cleaned) if cleaned is not None else 0
+
     return ProcessingResult(
-        cleaned=cleaned, warnings=warnings, errors=errors, duplicates=duplicates
+        cleaned=cleaned,
+        warnings=warnings,
+        errors=errors,
+        duplicates=duplicates,
+        n_input=n_input,
+        n_kept=n_kept,
+        n_duplicates=len(duplicates),
+        n_missing_program=len(missing_programs),
+        n_unknown_program=n_unknown_program,
     )
 
 
