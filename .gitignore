@@ -9,5 +9,10 @@ wheels/
 # Virtual environments
 .venv
 
-# Data files
-data/
+# Data files (nur Top-Level Entwicklungsdaten ignorieren)
+/data/
+
+# App-Mapping explizit erlauben
+!src/data/
+!src/data/mapping/
+!src/data/mapping/studiengaenge.json

@@ -1,0 +1,164 @@
+{
+  "programs": [
+    {
+      "name": "Accounting, Controlling, Taxation",
+      "fachbereich": "Wirtschaft",
+      "aliases": []
+    },
+    {
+      "name": "Advanced Practice in Healthcare - Advanced Clinical Practice / Advanced Practice Nursing (M. Sc.)",
+      "fachbereich": "Gesundheit",
+      "aliases": []
+    },
+    {
+      "name": "Advanced Practice in Healthcare - Berufspädagogik (M.A.)",
+      "fachbereich": "Gesundheit",
+      "aliases": []
+    },
+    {
+      "name": "Advanced Practice in Healthcare - Management von Gesundheitseinrichtungen (M.A.)",
+      "fachbereich": "Gesundheit",
+      "aliases": []
+    },
+    {
+      "name": "Advanced Practice in Healthcare",
+      "fachbereich": "Gesundheit",
+      "aliases": []
+    },
+    {
+      "name": "Bauingenieurwesen",
+      "fachbereich": "Technik",
+      "aliases": []
+    },
+    {
+      "name": "Data Science and Artificial Intelligence",
+      "fachbereich": "Technik",
+      "aliases": []
+    },
+    {
+      "name": "Digital Business Management",
+      "fachbereich": "Wirtschaft",
+      "aliases": []
+    },
+    {
+      "name": "Digitalisierung in der Sozialen Arbeit",
+      "fachbereich": "Sozialwesen",
+      "aliases": []
+    },
+    {
+      "name": "Elektrotechnik und Informationstechnik",
+      "fachbereich": "Technik",
+      "aliases": []
+    },
+    {
+      "name": "Executive Engineering",
+      "fachbereich": "Technik",
+      "aliases": []
+    },
+    {
+      "name": "Entrepreneurship",
+      "fachbereich": "Wirtschaft",
+      "aliases": []
+    },
+    {
+      "name": "Finance",
+      "fachbereich": "Wirtschaft",
+      "aliases": []
+    },
+    {
+      "name": "General Business Management",
+      "fachbereich": "Wirtschaft",
+      "aliases": []
+    },
+    {
+      "name": "Governance Sozialer Arbeit",
+      "fachbereich": "Sozialwesen",
+      "aliases": []
+    },
+    {
+      "name": "Informatik",
+      "fachbereich": "Technik",
+      "aliases": []
+    },
+    {
+      "name": "Integrated Engineering",
+      "fachbereich": "Technik",
+      "aliases": []
+    },
+    {
+      "name": "Intensive Care",
+      "fachbereich": "Gesundheit",
+      "aliases": []
+    },
+    {
+      "name": "Marketing and Business Psychology",
+      "fachbereich": "Wirtschaft",
+      "aliases": []
+    },
+    {
+      "name": "Marketing",
+      "fachbereich": "Wirtschaft",
+      "aliases": ["Marketing and Business Psychology"]
+    },
+    {
+      "name": "Maschinenbau",
+      "fachbereich": "Technik",
+      "aliases": []
+    },
+    {
+      "name": "Master of Business Administration",
+      "fachbereich": "Wirtschaft",
+      "aliases": ["MBA"]
+    },
+    {
+      "name": "Media and Data-driven Business",
+      "fachbereich": "Wirtschaft",
+      "aliases": []
+    },
+    {
+      "name": "Personalmanagement und Wirtschaftspsychologie",
+      "fachbereich": "Wirtschaft",
+      "aliases": []
+    },
+    {
+      "name": "Rechnungswesen Steuern Wirtschaftsrecht",
+      "fachbereich": "Wirtschaft",
+      "aliases": []
+    },
+    {
+      "name": "Sales and Negotiation",
+      "fachbereich": "Wirtschaft",
+      "aliases": []
+    },
+    {
+      "name": "Planung und Koordination in der Sozialen Arbeit",
+      "fachbereich": "Sozialwesen",
+      "aliases": []
+    },
+    {
+      "name": "Soziale Arbeit in der Migrationsgesellschaft",
+      "fachbereich": "Sozialwesen",
+      "aliases": []
+    },
+    {
+      "name": "Supply Chain Management, Logistics, Production",
+      "fachbereich": "Wirtschaft",
+      "aliases": []
+    },
+    {
+      "name": "Transkulturelle Traumapädagogik",
+      "fachbereich": "Sozialwesen",
+      "aliases": []
+    },
+    {
+      "name": "Wirtschaftsinformatik",
+      "fachbereich": "Wirtschaft",
+      "aliases": []
+    },
+    {
+      "name": "Wirtschaftsingenieurwesen",
+      "fachbereich": "Technik",
+      "aliases": []
+    }
+  ]
+}
