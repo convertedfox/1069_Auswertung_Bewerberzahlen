@@ -39,7 +39,7 @@ Das Projekt wird in zwei Phasen unterteilt:
   - **UND** es sich um denselben Studiengang handelt
 - Ausnahme:
   - Gleiche E-Mail-Adresse bei **unterschiedlichen Studiengängen** → **keine Dublette**
-
+- Wenn Dubletten vorliegen, soll der Benutzer wählen können, welche Duplette gelöscht werden soll.
 ---
 
 ### 3. Statusprüfung

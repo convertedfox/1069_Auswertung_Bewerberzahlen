@@ -23,6 +23,7 @@ class ProcessingResult:
     warnings: list[Issue]
     errors: list[Issue]
     duplicates: Any  # pandas.DataFrame
+    duplicate_groups: list[list[int]] = field(default_factory=list)
     n_input: int = 0
     n_kept: int = 0
     n_duplicates: int = 0

@@ -56,7 +56,7 @@ def _df(rows: list[dict[str, object]]) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def test_dubletten_entfernt_and_aufbewahrt_erste() -> None:
+def test_dubletten_erfordern_auswahl() -> None:
     data = _df(
         [
             _base_row(Bewerbungsnummer=1, EMAIL_COLUMN="a@example.com"),
@@ -65,15 +65,76 @@ def test_dubletten_entfernt_and_aufbewahrt_erste() -> None:
     )
     result = process_dataframe(data, _resolver())
 
-    assert result.cleaned is not None
-    assert len(result.cleaned) == 1
-    assert len(result.duplicates) == 1
+    assert result.cleaned is None
+    assert len(result.duplicates) == 2
     assert not result.errors
+    assert len(result.duplicate_groups) == 1
+    assert sorted(result.duplicate_groups[0]) == [2, 3]
+    assert any("Bitte pro Gruppe" in issue.message for issue in result.warnings)
     assert result.n_input == 2
-    assert result.n_kept == 1
+    assert result.n_kept == 0
     assert result.n_duplicates == 1
     assert result.n_missing_program == 0
     assert result.n_unknown_program == 0
+
+
+def test_dubletten_auswahl_behaelt_gewaehlte_zeile() -> None:
+    data = _df(
+        [
+            _base_row(Bewerbungsnummer=1, EMAIL_COLUMN="a@example.com"),
+            _base_row(Bewerbungsnummer=2, EMAIL_COLUMN="a@example.com"),
+        ]
+    )
+    cfg = PipelineConfig(duplicate_keep_rows={3})
+    result = process_dataframe(data, _resolver(), cfg)
+
+    assert result.cleaned is not None
+    assert len(result.cleaned) == 1
+    assert result.cleaned["Bewerbungsnummer"].iloc[0] == 2
+    assert len(result.duplicates) == 1
+    assert result.n_kept == 1
+    assert result.n_duplicates == 1
+
+
+def test_gleiche_email_unterschiedlicher_studiengang_ist_keine_dublette() -> None:
+    data = _df(
+        [
+            _base_row(
+                Bewerbungsnummer=1,
+                EMAIL_COLUMN="a@example.com",
+                **{PROGRAM_COLUMN: "Informatik"},
+            ),
+            _base_row(
+                Bewerbungsnummer=2,
+                EMAIL_COLUMN="a@example.com",
+                **{PROGRAM_COLUMN: "Marketing and Business Psychology"},
+            ),
+        ]
+    )
+    result = process_dataframe(data, _resolver())
+
+    assert result.cleaned is not None
+    assert len(result.cleaned) == 2
+    assert result.n_duplicates == 0
+    assert not result.duplicate_groups
+
+
+def test_dreifach_dublette_behaelt_nur_ausgewaehlte_zeile() -> None:
+    data = _df(
+        [
+            _base_row(Bewerbungsnummer=1, EMAIL_COLUMN="a@example.com"),
+            _base_row(Bewerbungsnummer=2, EMAIL_COLUMN="a@example.com"),
+            _base_row(Bewerbungsnummer=3, EMAIL_COLUMN="a@example.com"),
+        ]
+    )
+    cfg = PipelineConfig(duplicate_keep_rows={3})
+    result = process_dataframe(data, _resolver(), cfg)
+
+    assert result.cleaned is not None
+    assert len(result.cleaned) == 1
+    assert result.cleaned["Bewerbungsnummer"].iloc[0] == 2
+    assert len(result.duplicates) == 2
+    assert result.n_duplicates == 2
 
 
 def test_status_wird_abgeleitet() -> None:

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 import pandas as pd
 
@@ -25,6 +25,7 @@ from .report import Issue, ProcessingResult
 @dataclass
 class PipelineConfig:
     manual_assignments: dict[str, str] | None = None
+    duplicate_keep_rows: set[int] | None = None
 
 
 def process_dataframe(
@@ -50,19 +51,38 @@ def process_dataframe(
 
     _normalize_columns(working)
 
-    duplicates, working = _deduplicate(working)
-    if not duplicates.empty:
-        warnings.append(
-            Issue(
-                message=(
-                    "Dubletten gefunden (gleiche E-Mail + Studiengang); "
-                    "nur der erste Eintrag wurde behalten."
-                ),
-                level="warning",
-                rows=duplicates["__row_number"].astype(int).tolist(),
-                context={"anzahl": len(duplicates)},
-            )
+    duplicate_groups = _build_duplicate_groups(working)
+    duplicates = pd.DataFrame()
+    duplicates_resolved = True
+    if duplicate_groups:
+        duplicates, working, unresolved_groups = _resolve_duplicates_by_selection(
+            working,
+            duplicate_groups,
+            cfg.duplicate_keep_rows,
         )
+        duplicates_resolved = not unresolved_groups
+        if unresolved_groups:
+            unresolved_rows = [row for group in unresolved_groups for row in group]
+            warnings.append(
+                Issue(
+                    message=(
+                        "Dubletten gefunden (gleiche E-Mail + Studiengang). "
+                        "Bitte pro Gruppe genau einen Eintrag zum Behalten auswählen."
+                    ),
+                    level="warning",
+                    rows=unresolved_rows,
+                    context={"anzahl_gruppen": len(unresolved_groups)},
+                )
+            )
+        elif not duplicates.empty:
+            warnings.append(
+                Issue(
+                    message="Dubletten wurden gemäß Auswahl entfernt.",
+                    level="warning",
+                    rows=_row_numbers(duplicates),
+                    context={"anzahl": len(duplicates)},
+                )
+            )
 
     missing_programs, working = _separate_missing_programs(working)
     if not missing_programs.empty:
@@ -70,7 +90,7 @@ def process_dataframe(
             Issue(
                 message="Studiengang fehlt; Zeile wurde ignoriert.",
                 level="warning",
-                rows=missing_programs["__row_number"].astype(int).tolist(),
+                rows=_row_numbers(missing_programs),
                 context={"anzahl": len(missing_programs)},
             )
         )
@@ -89,7 +109,7 @@ def process_dataframe(
             )
 
     cleaned: pd.DataFrame | None = None
-    if not errors:
+    if not errors and duplicates_resolved:
         cleaned = _finalize_output(working)
 
     duplicates = _sanitize_output(duplicates)
@@ -102,9 +122,10 @@ def process_dataframe(
         warnings=warnings,
         errors=errors,
         duplicates=duplicates,
+        duplicate_groups=[list(group) for group in duplicate_groups.values()],
         n_input=n_input,
         n_kept=n_kept,
-        n_duplicates=len(duplicates),
+        n_duplicates=_count_duplicate_excess(duplicate_groups),
         n_missing_program=len(missing_programs),
         n_unknown_program=n_unknown_program,
     )
@@ -122,20 +143,62 @@ def _normalize_columns(df: pd.DataFrame) -> None:
     df[FACHBEREICH_COLUMN] = df[FACHBEREICH_COLUMN].astype("string")
 
 
-def _deduplicate(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
-    df["__program_key"] = df[PROGRAM_COLUMN]
-    df["__email_key"] = df[EMAIL_COLUMN]
-    duplicate_mask = df.duplicated(subset=["__program_key", "__email_key"], keep="first")
-    duplicates = df.loc[duplicate_mask].copy()
-    deduped = df.loc[~duplicate_mask].copy()
-    return duplicates, deduped
+def _build_duplicate_groups(df: pd.DataFrame) -> dict[tuple[str, str], list[int]]:
+    grouped: dict[tuple[str, str], list[int]] = {}
+    for _, group in df.groupby([PROGRAM_COLUMN, EMAIL_COLUMN], sort=False, dropna=False):
+        if len(group) <= 1:
+            continue
+        program = str(group[PROGRAM_COLUMN].iloc[0])
+        email = str(group[EMAIL_COLUMN].iloc[0])
+        row_numbers = sorted(_row_numbers(group))
+        grouped[(program, email)] = row_numbers
+    return grouped
+
+
+def _resolve_duplicates_by_selection(
+    df: pd.DataFrame,
+    duplicate_groups: dict[tuple[str, str], list[int]],
+    selected_rows: set[int] | None,
+) -> tuple[pd.DataFrame, pd.DataFrame, list[list[int]]]:
+    selected = selected_rows or set()
+    unresolved_groups: list[list[int]] = []
+    rows_to_remove: set[int] = set()
+
+    for rows in duplicate_groups.values():
+        chosen = [row for row in rows if row in selected]
+        if len(chosen) != 1:
+            unresolved_groups.append(rows)
+            continue
+        selected_row = chosen[0]
+        rows_to_remove.update(row for row in rows if row != selected_row)
+
+    duplicate_rows = {row for rows in duplicate_groups.values() for row in rows}
+    row_numbers = pd.Series(df["__row_number"], index=df.index, dtype="int64")
+    if unresolved_groups:
+        mask = row_numbers.isin(duplicate_rows)
+        duplicates = cast(pd.DataFrame, df.loc[mask, :]).copy()
+        return duplicates, df, unresolved_groups
+
+    remove_mask = row_numbers.isin(rows_to_remove)
+    duplicates = cast(pd.DataFrame, df.loc[remove_mask, :]).copy()
+    deduped = cast(pd.DataFrame, df.loc[~remove_mask, :]).copy()
+    return duplicates, deduped, []
+
+
+def _count_duplicate_excess(duplicate_groups: dict[tuple[str, str], list[int]]) -> int:
+    return sum(max(len(rows) - 1, 0) for rows in duplicate_groups.values())
 
 
 def _separate_missing_programs(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
-    mask_missing = ~df[PROGRAM_COLUMN].apply(_has_value)
-    missing = df.loc[mask_missing].copy()
-    present = df.loc[~mask_missing].copy()
+    program_values = pd.Series(df[PROGRAM_COLUMN], index=df.index)
+    mask_missing = ~program_values.apply(_has_value).astype(bool)
+    missing = cast(pd.DataFrame, df.loc[mask_missing, :]).copy()
+    present = cast(pd.DataFrame, df.loc[~mask_missing, :]).copy()
     return missing, present
+
+
+def _row_numbers(df: pd.DataFrame) -> list[int]:
+    return [int(value) for value in df["__row_number"].tolist()]
 
 
 def _has_value(value: object) -> bool:
