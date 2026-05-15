@@ -25,7 +25,7 @@ Das Projekt wird in zwei Phasen unterteilt:
 ### 1. Datenimport
 
 - Die Anwendung liest Excel-Dateien ein über ein Uploadfeld
-- eine typische Datei dazu liegt in `data/development`.
+- eine typische Datei dazu liegt in `data/development/Export_110526.csv`.
 - Die Struktur der Datei entspricht dem typischen Format eingehender Bewerberdaten.
 
 ---
