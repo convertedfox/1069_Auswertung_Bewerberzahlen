@@ -56,10 +56,14 @@ def _format_duplicate_option(row_number: int, df_with_rows: pd.DataFrame) -> str
 
     row = match.iloc[0]
     application_number = str(row.get("Bewerbungsnummer", "-")).strip() or "-"
+    program_value = str(row.get(PROGRAM_COLUMN, "-")).strip() or "-"
+    first_name = str(row.get("Formularfelder_Vorname", "-")).strip() or "-"
+    last_name = str(row.get("Formularfelder_Name", "-")).strip() or "-"
     status_value = str(row.get(STATUS_COLUMN, "")).strip() or "-"
     start_value = str(row.get("BEW-Start", "")).strip() or "-"
     return (
         f"Zeile {row_number} | Bewerbungsnummer {application_number} | "
+        f"Studiengang {program_value} | Name {first_name} {last_name} | "
         f"Status {status_value} | BEW-Start {start_value}"
     )
 
